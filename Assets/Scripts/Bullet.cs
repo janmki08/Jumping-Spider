@@ -3,6 +3,7 @@ using UnityEngine;
 public class Bullet : MonoBehaviour
 {
     public float lifetime = 3f; // 총알의 수명 (초)
+    public GameObject dustParticlePrefab; // 먼지 파티클 효과 프리팹
 
     private void Start()
     {
@@ -19,11 +20,19 @@ public class Bullet : MonoBehaviour
             {
                 bird.OnDeath(); // 적의 OnDeath() 메서드 호출
             }
-            Destroy(gameObject); // 총알 오브젝트 파괴
+            DestroyBullet();
         }
-        else
+    }
+
+    private void DestroyBullet()
+    {
+        // 총알 오브젝트 파괴
+        Destroy(gameObject);
+
+        // 먼지 파티클 효과 생성
+        if (dustParticlePrefab != null)
         {
-            Destroy(gameObject); // 총알 오브젝트 파괴
+            Instantiate(dustParticlePrefab, transform.position, Quaternion.identity);
         }
     }
 }

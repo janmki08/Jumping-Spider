@@ -28,8 +28,8 @@ public class Destroy : MonoBehaviour
     private int maxRings = 3; // 최대 링 개수
     private int maxEnemies = 3; // 최대 적 개수
 
-    private float minX = -3.5f; // 최소 X 위치
-    private float maxX = 3.5f; // 최대 X 위치
+    private float minX = -1f; // 최소 X 위치
+    private float maxX = 1f; // 최대 X 위치
     private void Start()
     {
         mainCamera = Camera.main;
@@ -214,12 +214,47 @@ public class Destroy : MonoBehaviour
                 }
             }
 
-            float randomX = Random.Range(minX, maxX);
+            float randomX;
+            int randomSide = Random.Range(0, 2); // 0: 왼쪽, 1: 오른쪽
+            if (randomSide == 0)
+            {
+                randomX = minX - 1f; // 화면 왼쪽 바깥에서 생성
+            }
+            else
+            {
+                randomX = maxX + 1f; // 화면 오른쪽 바깥에서 생성
+            }
+
             Vector2 randomPosition = new Vector2(randomX, randomY);
 
-            currentEnemy = (GameObject)Instantiate(enemyPrefab, randomPosition, Quaternion.identity);
+            currentEnemy = Instantiate(enemyPrefab, randomPosition, Quaternion.identity);
             currentEnemy.tag = "Enemy"; // 태그 설정
             enemies.Add(currentEnemy); // 적 리스트에 추가
+        }
+        else
+        {
+            // 적 개수가 최대 개수보다 적을 때 마지막 적이 없어도 생성
+            if (enemies.Count < maxEnemies)
+            {
+                float randomY = Random.Range(10f, 20f) + player.transform.position.y;
+
+                float randomX;
+                int randomSide = Random.Range(0, 2); // 0: 왼쪽, 1: 오른쪽
+                if (randomSide == 0)
+                {
+                    randomX = minX - 1f; // 화면 왼쪽 바깥에서 생성
+                }
+                else
+                {
+                    randomX = maxX + 1f; // 화면 오른쪽 바깥에서 생성
+                }
+
+                Vector2 randomPosition = new Vector2(randomX, randomY);
+
+                currentEnemy = Instantiate(enemyPrefab, randomPosition, Quaternion.identity);
+                currentEnemy.tag = "Enemy"; // 태그 설정
+                enemies.Add(currentEnemy); // 적 리스트에 추가
+            }
         }
     }
 }

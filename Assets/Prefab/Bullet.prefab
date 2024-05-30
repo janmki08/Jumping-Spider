@@ -184,3 +184,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lifetime: 2
+  dustParticlePrefab: {fileID: 5815308948441367042, guid: ae130c7908c6efe46b8e9538fe9b2840, type: 3}

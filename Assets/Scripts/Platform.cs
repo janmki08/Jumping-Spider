@@ -14,7 +14,7 @@ public class Platform : MonoBehaviour
     }
     private void OnCollisionEnter2D(Collision2D other)
     {
-        if (other.relativeVelocity.y <= 0f)
+        if (other.relativeVelocity.y <= 0.5f)
         {
             Rigidbody2D rb = other.collider.GetComponent<Rigidbody2D>();
 

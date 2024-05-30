@@ -26,8 +26,10 @@ public class PlayerController : MonoBehaviour
 
     public float itemEffectDuration = 2f; // 아이템 효과 지속 시간
     public float itemUpwardForce = 10f; // 아이템 효과로 인한 위쪽 방향 힘
+    public float invincibilityDuration = 3f; // 무적 효과 지속 시간
 
     private bool isItemEffectActive = false; // 아이템 효과 활성화 여부
+    private bool isInvincible = false; // 무적 상태 여부
 
     void Start()
     {
@@ -117,11 +119,14 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Enemy"))
         {
-            // 플레이어와 적 충돌 시 게임 오버 상태로 전환
-            if (gameOver != null)
+            if (!isInvincible)
             {
-                gameOver.OnPlayerCollideWithEnemy();
-                restartScript.OnPlayerCollideWithEnemy();
+                // 무적 상태가 아닐 때만 게임 오버 처리
+                if (gameOver != null)
+                {
+                    gameOver.OnPlayerCollideWithEnemy();
+                    restartScript.OnPlayerCollideWithEnemy();
+                }
             }
         }
     }
@@ -137,6 +142,9 @@ public class PlayerController : MonoBehaviour
             // 위쪽 방향으로 힘 적용
             Rigidbody2D rb = GetComponent<Rigidbody2D>();
             rb.AddForce(Vector2.up * itemUpwardForce, ForceMode2D.Impulse);
+
+            // 무적 효과 활성화
+            StartCoroutine(InvincibilityEffect());
         }
     }
 
@@ -144,5 +152,23 @@ public class PlayerController : MonoBehaviour
     {
         // 아이템 효과 비활성화
         isItemEffectActive = false;
+    }
+
+    private IEnumerator InvincibilityEffect()
+    {
+        isInvincible = true;
+        // 무적 상태일 때의 시각적 효과 (예: 플레이어 깜빡임)
+        for (float t = 0; t < invincibilityDuration; t += 0.1f)
+        {
+            sprite.enabled = !sprite.enabled;
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        sprite.enabled = true;
+        isInvincible = false;
+    }
+    public bool IsInvincible
+    {
+        get { return isInvincible; }
     }
 }

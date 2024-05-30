@@ -40,7 +40,11 @@ public class EnemyMovement : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            Destroy(collision.gameObject);
+            PlayerController playerController = collision.gameObject.GetComponent<PlayerController>();
+            if (playerController != null && !playerController.IsInvincible)
+            {
+                Destroy(collision.gameObject);
+            }
         }
     }
 }

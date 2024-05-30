@@ -875,7 +875,7 @@ DistanceJoint2D:
   m_Anchor: {x: 0, y: 0}
   m_ConnectedAnchor: {x: 0, y: 0}
   m_AutoConfigureDistance: 1
-  m_Distance: 3
+  m_Distance: 0.16599989
   m_MaxDistanceOnly: 0
 --- !u!58 &206053756
 CircleCollider2D:
@@ -4284,7 +4284,7 @@ LineRenderer:
     shadowBias: 0.5
     generateLightingData: 0
   m_MaskInteraction: 0
-  m_UseWorldSpace: 0
+  m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
 --- !u!1 &1743825682
@@ -4600,6 +4600,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 481553535}
     m_Modifications:
+    - target: {fileID: 1461082888955389419, guid: be5b51902b6cdc84e90092320a84e4da, type: 3}
+      propertyPath: jumpForce
+      value: 20
+      objectReference: {fileID: 0}
     - target: {fileID: 3810074327839110371, guid: be5b51902b6cdc84e90092320a84e4da, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.99

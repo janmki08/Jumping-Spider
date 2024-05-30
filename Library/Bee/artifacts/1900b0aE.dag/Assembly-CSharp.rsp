@@ -381,6 +381,7 @@
 "Assets/Scripts/CameraController.cs"
 "Assets/Scripts/Destroy.cs"
 "Assets/Scripts/EnemyMovement.cs"
+"Assets/Scripts/FrogTongue.cs"
 "Assets/Scripts/GameManager.cs"
 "Assets/Scripts/GameOver.cs"
 "Assets/Scripts/GrapplingHook.cs"
