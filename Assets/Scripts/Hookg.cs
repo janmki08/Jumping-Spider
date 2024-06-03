@@ -6,7 +6,6 @@ public class Hookg : MonoBehaviour
 {
     GrapplingHook grappling;
     public DistanceJoint2D joint2D;
-    // Start is called before the first frame update
     void Start()
     {
         grappling = GameObject.Find("Player").GetComponent<GrapplingHook>();

@@ -8,7 +8,7 @@ public class Bird : MonoBehaviour
     public AudioClip deathSound; // 푸드덕 소리 클립
     public float maxDistance = 10f; // 소리가 들리는 최대 거리
     public float minVolume = 0f; // 최소 볼륨
-    public float maxVolume = 1f; // 최대 볼륨
+    public float maxVolume = .5f; // 최대 볼륨
     private Transform playerTransform; // 플레이어의 Transform 컴포넌트
     private static Bird closestBird; // 가장 가까운 적의 Bird 컴포넌트
     public GameObject itemPrefab; // 생성할 아이템 프리팹
@@ -27,7 +27,6 @@ public class Bird : MonoBehaviour
         // 플레이어 오브젝트가 파괴되었는지 확인
         if (playerTransform == null)
         {
-            Debug.Log("파괴");
             // 플레이어 오브젝트가 파괴된 경우 스크립트 실행 중단
             return;
         }

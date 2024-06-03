@@ -158,7 +158,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 2.2
-  movementDistance: 4.5
+  movementDistance: 6
   movingRight: 1
 --- !u!114 &5994636935894476096
 MonoBehaviour:
@@ -176,7 +176,7 @@ MonoBehaviour:
   deathSound: {fileID: 8300000, guid: 516c1a6d67e1dae4ca9abef16a11dae2, type: 3}
   maxDistance: 11
   minVolume: 0
-  maxVolume: 1
+  maxVolume: 0.55
   itemPrefab: {fileID: 6136178319811383779, guid: 933e4d32868039648b909b5d62d19aa5, type: 3}
 --- !u!82 &6092194690479984216
 AudioSource:

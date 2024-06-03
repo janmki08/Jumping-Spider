@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,18 +17,19 @@ public class Destroy : MonoBehaviour
     private Camera mainCamera;
     public float destroyerOffsetY = -8.5f;
 
-    private List<GameObject> platforms = new List<GameObject>(); // 플랫폼 리스트
-    private List<GameObject> springs = new List<GameObject>(); // 스프링 리스트
-    private List<GameObject> rings = new List<GameObject>(); // 링 리스트
-    private List<GameObject> enemies = new List<GameObject>(); // 적 리스트
+    private List<GameObject> platforms = new List<GameObject>();
+    private List<GameObject> springs = new List<GameObject>();
+    private List<GameObject> rings = new List<GameObject>();
+    private List<GameObject> enemies = new List<GameObject>();
 
-    private int maxPlatforms = 20; // 최대 플랫폼 개수
-    private int maxSprings = 3; // 최대 스프링 개수
-    private int maxRings = 3; // 최대 링 개수
-    private int maxEnemies = 3; // 최대 적 개수
+    private int maxPlatforms = 20;
+    private int maxSprings = 3;
+    private int maxRings = 3;
+    private int maxEnemies = 3;
 
-    private float minX = -1f; // 최소 X 위치
-    private float maxX = 1f; // 최대 X 위치
+    private float minX = -3.5f;
+    private float maxX = 3.5f;
+
     private void Start()
     {
         mainCamera = Camera.main;
@@ -37,10 +37,7 @@ public class Destroy : MonoBehaviour
 
     private void Update()
     {
-        Vector3 cameraPosition = mainCamera.transform.position;
-        cameraPosition.y += destroyerOffsetY;
-        cameraPosition.z = transform.position.z;
-        transform.position = cameraPosition;
+        UpdateCameraPosition();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -69,24 +66,28 @@ public class Destroy : MonoBehaviour
 
     private void DestroyPlatform(GameObject platform)
     {
+        platforms.RemoveAll(item => item == null);
         platforms.Remove(platform);
         Destroy(platform);
     }
 
     private void DestroySpring(GameObject spring)
     {
+        springs.RemoveAll(item => item == null);
         springs.Remove(spring);
         Destroy(spring);
     }
 
     private void DestroyRing(GameObject ring)
     {
+        rings.RemoveAll(item => item == null);
         rings.Remove(ring);
         Destroy(ring);
     }
 
     private void DestroyEnemy(GameObject enemy)
     {
+        enemies.RemoveAll(item => item == null);
         if (enemy != null)
         {
             enemies.Remove(enemy);
@@ -96,60 +97,33 @@ public class Destroy : MonoBehaviour
 
     private void SpawnPlatform()
     {
-        if (platforms.Count >= maxPlatforms) // 최대 개수를 초과하면 새로운 플랫폼을 생성하지 않음
+        if (platforms.Count >= maxPlatforms)
             return;
 
-        float randomY;
-        float minY = 1f; // 최소 간격
-        float maxY = 3.5f; // 최대 간격
-
-        if (platforms.Count == 0) // 첫 번째 플랫폼인 경우
-        {
-            randomY = Random.Range(6f, 10f) + player.transform.position.y;
-        }
-        else // 이전 플랫폼이 있는 경우
-        {
-            GameObject lastPlatform = platforms[platforms.Count - 1];
-            float lastPlatformY = lastPlatform.transform.position.y;
-            randomY = Random.Range(lastPlatformY + minY, lastPlatformY + maxY);
-        }
-
+        float randomY = CalculateRandomY(platforms, player.transform.position.y, 6f, 10f, 3f, 4f);
         float randomX = Random.Range(minX, maxX);
         Vector2 randomPosition = new Vector2(randomX, randomY);
 
-        currentPlat = (GameObject)Instantiate(platformPrefab, randomPosition, Quaternion.identity);
-        currentPlat.tag = "Platform"; // 태그 설정
-        platforms.Add(currentPlat); // 플랫폼 리스트에 추가
+        currentPlat = Instantiate(platformPrefab, randomPosition, Quaternion.identity);
+        currentPlat.tag = "Platform";
+        platforms.Add(currentPlat);
 
         SpawnSpring();
         SpawnRing();
         SpawnEnemy();
     }
+
     private void SpawnSpring()
     {
         if (springs.Count < maxSprings)
         {
-            float minY = 3f; // 최소 간격
-            float maxY = 8f; // 최대 간격
-
-            float randomY;
-            if (springs.Count == 0) // 첫 번째 스프링인 경우
-            {
-                randomY = Random.Range(5f, 15f) + player.transform.position.y;
-            }
-            else // 이전 스프링이 있는 경우
-            {
-                GameObject lastSpring = springs[springs.Count - 1];
-                float lastSpringY = lastSpring.transform.position.y;
-                randomY = Random.Range(lastSpringY + minY, lastSpringY + maxY);
-            }
-
+            float randomY = CalculateRandomY(springs, player.transform.position.y, 5f, 15f, 3f, 8f);
             float randomX = Random.Range(minX, maxX);
             Vector2 randomPosition = new Vector2(randomX, randomY);
 
-            currentSpring = (GameObject)Instantiate(springPrefab, randomPosition, Quaternion.identity);
-            currentSpring.tag = "Spring"; // 태그 설정
-            springs.Add(currentSpring); // 스프링 리스트에 추가
+            currentSpring = Instantiate(springPrefab, randomPosition, Quaternion.identity);
+            currentSpring.tag = "Spring";
+            springs.Add(currentSpring);
         }
     }
 
@@ -157,104 +131,60 @@ public class Destroy : MonoBehaviour
     {
         if (rings.Count < maxRings)
         {
-            float minY = 5f; // 최소 간격
-            float maxY = 15f; // 최대 간격
-
-            float randomY;
-            if (rings.Count == 0) // 첫 번째 링인 경우
-            {
-                randomY = Random.Range(12f, 30f) + player.transform.position.y;
-            }
-            else // 이전 링이 있는 경우
-            {
-                GameObject lastRing = rings[rings.Count - 1];
-                float lastRingY = lastRing.transform.position.y;
-                randomY = Random.Range(lastRingY + minY, lastRingY + maxY);
-            }
-
+            float randomY = CalculateRandomY(rings, player.transform.position.y, 12f, 30f, 5f, 15f);
             float randomX = Random.Range(minX, maxX);
             Vector2 randomPosition = new Vector2(randomX, randomY);
 
-            currentRing = (GameObject)Instantiate(ringPrefab, randomPosition, Quaternion.identity);
-            currentRing.tag = "Ring"; // 태그 설정
-            rings.Add(currentRing); // 링 리스트에 추가
+            currentRing = Instantiate(ringPrefab, randomPosition, Quaternion.identity);
+            currentRing.tag = "Ring";
+            rings.Add(currentRing);
         }
     }
 
     private void SpawnEnemy()
     {
+        enemies.RemoveAll(item => item == null);
+
         if (enemies.Count < maxEnemies)
         {
-            float minY = 5f; // 최소 간격
-            float maxY = 15f; // 최대 간격
-
-            float randomY;
-            if (enemies.Count == 0) // 첫 번째 적인 경우
-            {
-                randomY = Random.Range(10f, 20f) + player.transform.position.y;
-            }
-            else // 이전 적이 있는 경우
-            {
-                if (enemies.Count > 0) // 리스트가 비어 있는지 확인
-                {
-                    GameObject lastEnemy = enemies[enemies.Count - 1];
-                    if (lastEnemy != null) // 마지막 적이 존재하는지 확인
-                    {
-                        float lastEnemyY = lastEnemy.transform.position.y;
-                        randomY = Random.Range(lastEnemyY + minY, lastEnemyY + maxY);
-                    }
-                    else
-                    {
-                        randomY = Random.Range(10f, 20f) + player.transform.position.y;
-                    }
-                }
-                else
-                {
-                    randomY = Random.Range(10f, 20f) + player.transform.position.y;
-                }
-            }
-
-            float randomX;
-            int randomSide = Random.Range(0, 2); // 0: 왼쪽, 1: 오른쪽
-            if (randomSide == 0)
-            {
-                randomX = minX - 1f; // 화면 왼쪽 바깥에서 생성
-            }
-            else
-            {
-                randomX = maxX + 1f; // 화면 오른쪽 바깥에서 생성
-            }
-
+            float randomY = CalculateRandomY(enemies, player.transform.position.y, 10f, 20f, 5f, 15f);
+            float randomX = CalculateRandomX();
             Vector2 randomPosition = new Vector2(randomX, randomY);
 
             currentEnemy = Instantiate(enemyPrefab, randomPosition, Quaternion.identity);
-            currentEnemy.tag = "Enemy"; // 태그 설정
-            enemies.Add(currentEnemy); // 적 리스트에 추가
+            currentEnemy.tag = "Enemy";
+            enemies.Add(currentEnemy);
         }
+    }
+
+    private float CalculateRandomY(List<GameObject> objects, float playerY, float minRange, float maxRange, float minGap, float maxGap)
+    {
+        float randomY;
+
+        if (objects.Count == 0)
+            randomY = Random.Range(minRange, maxRange) + playerY;
         else
         {
-            // 적 개수가 최대 개수보다 적을 때 마지막 적이 없어도 생성
-            if (enemies.Count < maxEnemies)
-            {
-                float randomY = Random.Range(10f, 20f) + player.transform.position.y;
-
-                float randomX;
-                int randomSide = Random.Range(0, 2); // 0: 왼쪽, 1: 오른쪽
-                if (randomSide == 0)
-                {
-                    randomX = minX - 1f; // 화면 왼쪽 바깥에서 생성
-                }
-                else
-                {
-                    randomX = maxX + 1f; // 화면 오른쪽 바깥에서 생성
-                }
-
-                Vector2 randomPosition = new Vector2(randomX, randomY);
-
-                currentEnemy = Instantiate(enemyPrefab, randomPosition, Quaternion.identity);
-                currentEnemy.tag = "Enemy"; // 태그 설정
-                enemies.Add(currentEnemy); // 적 리스트에 추가
-            }
+            GameObject lastObject = objects[objects.Count - 1];
+            float lastObjectY = lastObject.transform.position.y;
+            randomY = Random.Range(lastObjectY + minGap, lastObjectY + maxGap);
         }
+
+        return randomY;
+    }
+
+    private float CalculateRandomX()
+    {
+        int randomSide = Random.Range(0, 2);
+        float randomX = randomSide == 0 ? minX - 1f : maxX + 1f;
+        return randomX;
+    }
+
+    private void UpdateCameraPosition()
+    {
+        Vector3 cameraPosition = mainCamera.transform.position;
+        cameraPosition.y += destroyerOffsetY;
+        cameraPosition.z = transform.position.z;
+        transform.position = cameraPosition;
     }
 }

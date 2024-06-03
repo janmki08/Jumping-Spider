@@ -13,7 +13,12 @@ public class ScoreManager : MonoBehaviour
     private float score; // 현재 점수
     private float highScore; // 최고 기록
 
+    private GameOver gameOver; // GameOverRestartUI 스크립트 참조
+    private Restart restartScript; // Restart 스크립트 참조
+
     private const string HIGH_SCORE_KEY = "HighScore"; // 최고 기록을 저장할 키
+
+    private bool isGameOver = false; // 게임 오버 상태 추적
 
     private void Start()
     {
@@ -21,6 +26,10 @@ public class ScoreManager : MonoBehaviour
         score = 0f; // 점수 초기화
         highScore = PlayerPrefs.GetFloat(HIGH_SCORE_KEY, 0f); // 저장된 최고 기록 불러오기 (기본값: 0)
         UpdateScoreUI(); // 초기 점수 표시
+
+        // GameOver 스크립트 찾기
+        gameOver = FindObjectOfType<GameOver>();
+        restartScript = FindObjectOfType<Restart>();
     }
 
     private void Update()
@@ -29,6 +38,9 @@ public class ScoreManager : MonoBehaviour
         float distance = camTransform.position.y - initialPlayerY;
         score = Mathf.Max(score, distance);
         UpdateScoreUI();
+
+        // 게임 오버 조건 확인
+        CheckGameOver();
     }
 
     private void UpdateScoreUI()
@@ -44,6 +56,16 @@ public class ScoreManager : MonoBehaviour
             highScore = score;
             PlayerPrefs.SetFloat(HIGH_SCORE_KEY, highScore); // 최고 기록 저장
             PlayerPrefs.Save(); // 변경 사항 저장
+        }
+    }
+
+    private void CheckGameOver()
+    {
+        if (camTransform.position.y < initialPlayerY - 10f && !isGameOver)
+        {
+            isGameOver = true; // 게임 오버 상태 설정
+            gameOver.OnPlayerCollideWithEnemy();
+            restartScript.OnPlayerCollideWithEnemy();
         }
     }
 }

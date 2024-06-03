@@ -21,15 +21,11 @@ public class GrapplingHook : MonoBehaviour
     private float cooldownTimer; // 쿨다운 타이머
     public Image gauge;
 
-    public AudioClip shootingSound; // 거미줄 사운드 클립
-    private AudioSource audioSource; // 오디오 소스 컴포넌트
-
     // Start is called before the first frame update
     void Start()
     {
         // 게이지 초기 설정
         gauge.fillAmount = 0f;
-        audioSource = GetComponent<AudioSource>();
         line.positionCount = 2;
         line.endWidth = line.startWidth = 0.05f;
         line.SetPosition(0, transform.position);
@@ -51,7 +47,6 @@ public class GrapplingHook : MonoBehaviour
             isHookActive = true;
             isLineMax = false;
             hook.gameObject.SetActive(true);
-            audioSource.PlayOneShot(shootingSound);
         }
 
         if (isHookActive && !isLineMax && !isAttach)

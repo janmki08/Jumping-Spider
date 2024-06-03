@@ -20,7 +20,6 @@ public class PlayerController : MonoBehaviour
 
     public AudioClip swingSound; // 웹스윙 사운드 클립
     private AudioSource audioSource; // 오디오 소스 컴포넌트
-
     private GameOver gameOver; // GameOverRestartUI 스크립트 참조
     private Restart restartScript; // Restart 스크립트 참조
 
@@ -30,6 +29,10 @@ public class PlayerController : MonoBehaviour
 
     private bool isItemEffectActive = false; // 아이템 효과 활성화 여부
     private bool isInvincible = false; // 무적 상태 여부
+
+    private float blinkTimer; // 깜빡임 타이머
+    private float blinkInterval = 0.2f; // 깜빡임 간격
+    private float blinkAlpha = 0.2f; // 반투명 알파 값
 
     void Start()
     {
@@ -71,6 +74,9 @@ public class PlayerController : MonoBehaviour
                 audioSource.clip = swingSound;
                 audioSource.Play();
             }
+
+            // 그래플링 중 플레이어 캐릭터 반투명 효과
+            BlinkPlayer();
         }
         else
         {
@@ -90,6 +96,9 @@ public class PlayerController : MonoBehaviour
             {
                 audioSource.Stop();
             }
+
+            // 그래플링이 끝났을 때 캐릭터가 다시 불투명하게 설정
+            sprite.color = new Color(1f, 1f, 1f, 1f);
         }
 
         if (rb.velocity.y > 0)
@@ -103,6 +112,16 @@ public class PlayerController : MonoBehaviour
         else if (rb.velocity.y == 0)
         {
             sprite.sprite = idle;
+        }
+    }
+
+    private void BlinkPlayer()
+    {
+        blinkTimer += Time.deltaTime;
+        if (blinkTimer >= blinkInterval)
+        {
+            blinkTimer = 0f;
+            sprite.color = new Color(1f, 1f, 1f, sprite.color.a == 1f ? blinkAlpha : 1f);
         }
     }
 
@@ -135,6 +154,7 @@ public class PlayerController : MonoBehaviour
     {
         if (!isItemEffectActive)
         {
+            col.enabled = false;
             // 아이템 효과 활성화
             isItemEffectActive = true;
             Invoke("DeactivateItemEffect", itemEffectDuration);
@@ -157,7 +177,7 @@ public class PlayerController : MonoBehaviour
     private IEnumerator InvincibilityEffect()
     {
         isInvincible = true;
-        // 무적 상태일 때의 시각적 효과 (예: 플레이어 깜빡임)
+        // 무적 상태일 때의 깜빡임
         for (float t = 0; t < invincibilityDuration; t += 0.1f)
         {
             sprite.enabled = !sprite.enabled;
@@ -167,6 +187,7 @@ public class PlayerController : MonoBehaviour
         sprite.enabled = true;
         isInvincible = false;
     }
+
     public bool IsInvincible
     {
         get { return isInvincible; }
