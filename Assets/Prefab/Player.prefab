@@ -82,7 +82,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 5
-  m_Sprite: {fileID: 21300000, guid: f311e7422be48d940b989d0c9fa67c85, type: 3}
+  m_Sprite: {fileID: 21300000, guid: ef0497d6dd04d3f48b7f502557b85c26, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -169,12 +169,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   grappling: {fileID: 583765078765855682}
   moveInput: 0
-  idle: {fileID: 21300000, guid: f311e7422be48d940b989d0c9fa67c85, type: 3}
-  jumping: {fileID: 21300000, guid: 075bda5b5081869438f86cb0665bea2e, type: 3}
-  landing: {fileID: 21300000, guid: 3cfdb3f2c1ca5dd4bb926c644fcd108d, type: 3}
+  idle: {fileID: 21300000, guid: ef0497d6dd04d3f48b7f502557b85c26, type: 3}
+  jumping: {fileID: 21300000, guid: 4b006ed86591feb48b1983a6a2bff8bf, type: 3}
+  landing: {fileID: 21300000, guid: 59964d382ced4ea49bd409b6484c737f, type: 3}
   pendulumForce: 4
   swingSound: {fileID: 8300000, guid: 248df20de1a6f6345bb7b9d3145647f3, type: 3}
-  itemSound: {fileID: 8300000, guid: 198e8593d0e6f994693f3858fd89a40e, type: 3}
   itemEffectDuration: 2
   itemUpwardForce: 10
   invincibilityDuration: 3
@@ -212,7 +211,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 248df20de1a6f6345bb7b9d3145647f3, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.455
+  m_Volume: 0.4
   m_Pitch: 1.5
   Loop: 0
   Mute: 0
@@ -1053,7 +1052,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 575a6aee3bb18db41877f7344baa4df7, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.34
+  m_Volume: 0.3
   m_Pitch: 1.5
   Loop: 0
   Mute: 0
