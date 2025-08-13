@@ -1,135 +1,174 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 
-[RequireComponent(typeof(Rigidbody2D))]
+// 스크립트가 정상적으로 동작하는 데 필요한 컴포넌트들이 항상 존재하도록 보장합니다.
 public class PlayerController : MonoBehaviour
 {
-    public GrapplingHook grappling;
+    // --- 상태 정의 ---
+    private enum PlayerState { Normal, Grappling }
+    private PlayerState currentState;
+
+    // --- 인스펙터 설정 변수 ---
+    [Header("Movement")]
+    [SerializeField] private float speed = 8f;
+    [SerializeField] private float pendulumForce = 5f;
+
+    [Header("Item Effects")]
+    [SerializeField] private float itemEffectDuration = 2f;
+    [SerializeField] private float itemUpwardForce = 10f;
+    [SerializeField] private float invincibilityDuration = 2f;
+
+    [Header("Visuals")]
+    [SerializeField] private Sprite idleSprite;
+    [SerializeField] private Sprite jumpingSprite;
+    [SerializeField] private Sprite fallingSprite;
+    [SerializeField] private float blinkInterval = 0.1f;
+
+    [Header("Audio")]
+    [SerializeField] private AudioClip swingSound;
+
+    [Header("Dependencies")]
+    [SerializeField] private GameOver gameOver;
+    [SerializeField] private Restart restartScript;
+
+    // --- 내부 상태 변수 ---
+    private float moveInput;
+    private bool isItemEffectActive = false;
+    private bool isInvincible = false;
+    private Coroutine blinkCoroutine;
+
+    // --- 컴포넌트 참조 ---
     private Rigidbody2D rb;
-    public float moveInput = 0f;
-    private float speed = 8f;
-    private Collider2D col;
     private SpriteRenderer sprite;
-    public Sprite idle;
-    public Sprite jumping;
-    public Sprite landing;
-    public float pendulumForce = 5f; // 진자 운동 힘 조절 변수
+    private GrapplingHook grappling;
+    private Collider2D col;
+    private AudioSource audioSource;
 
-    public AudioClip swingSound; // 웹스윙 사운드 클립
-    private AudioSource audioSource; // 오디오 소스 컴포넌트
-    private GameOver gameOver; // GameOverRestartUI 스크립트 참조
-    private Restart restartScript; // Restart 스크립트 참조
+    // --- 공개 프로퍼티 ---
+    public bool IsGrappling => currentState == PlayerState.Grappling;
+    public bool IsInvincible => isInvincible;
 
-    public float itemEffectDuration = 2f; // 아이템 효과 지속 시간
-    public float itemUpwardForce = 10f; // 아이템 효과로 인한 위쪽 방향 힘
-    public float invincibilityDuration = 3f; // 무적 효과 지속 시간
-
-    private bool isItemEffectActive = false; // 아이템 효과 활성화 여부
-    private bool isInvincible = false; // 무적 상태 여부
-
-    private float blinkTimer; // 깜빡임 타이머
-    private float blinkInterval = 0.2f; // 깜빡임 간격
-    private float blinkAlpha = 0.2f; // 반투명 알파 값
-
-    void Start()
+    private void Awake()
     {
+        // 컴포넌트 참조를 한 번만 가져옵니다.
         rb = GetComponent<Rigidbody2D>();
         sprite = GetComponent<SpriteRenderer>();
         grappling = GetComponent<GrapplingHook>();
         col = GetComponent<Collider2D>();
         audioSource = GetComponent<AudioSource>();
+    }
 
-        // GameOver 스크립트 찾기
-        gameOver = FindObjectOfType<GameOver>();
-        restartScript = FindObjectOfType<Restart>();
+    private void Start()
+    {
+        // 초기 상태 설정
+        currentState = PlayerState.Normal;
+    }
+
+    private void Update()
+    {
+        // 입력은 Update에서 처리하는 것이 좋습니다.
+        moveInput = Input.GetAxis("Horizontal");
+
+        // 상태 전환 로직
+        PlayerState nextState = grappling.isAttach ? PlayerState.Grappling : PlayerState.Normal;
+        if (nextState != currentState)
+        {
+            TransitionToState(nextState);
+        }
+
+        // 매 프레임마다 스프라이트를 업데이트합니다.
+        UpdateSprite();
     }
 
     void FixedUpdate()
     {
-        moveInput = Input.GetAxis("Horizontal");
-
-        if (grappling.isAttach)
+        // 현재 상태에 따라 물리 로직을 실행합니다.
+        switch (currentState)
         {
-            // 그래플링 중 충돌 제거
-            col.enabled = false;
+            case PlayerState.Normal:
+                HandleNormalMovement();
+                break;
+            case PlayerState.Grappling:
+                HandleGrapplingMovement();
+                break;
+        }
+    }
 
-            Vector2 hookposition = grappling.GetHookPosition();
-            Vector2 pendulumDirection = (hookposition - (Vector2)transform.position).normalized;
+    private void TransitionToState(PlayerState newState)
+    {
+        // 이전 상태 정리
+        if (blinkCoroutine != null)
+        {
+            StopCoroutine(blinkCoroutine);
+            blinkCoroutine = null;
+        }
+        sprite.enabled = true; // 깜빡임 종료 후 항상 보이도록 설정
 
-            float pendulumSpeed = Vector2.Dot(rb.velocity, pendulumDirection);
+        // 새 상태로 전환
+        currentState = newState;
 
-            // 진자 운동 효과 적용
-            rb.AddForce(-pendulumDirection * pendulumSpeed * pendulumForce);
+        switch (currentState)
+        {
+            case PlayerState.Normal:
+                col.enabled = true;
+                if (audioSource.isPlaying)
+                {
+                    audioSource.Stop();
+                }
+                // 관성 적용
+                if (grappling.isReleased)
+                {
+                    rb.velocity = grappling.releaseVelocity;
+                    grappling.isReleased = false;
+                }
+                break;
 
-            // 좌우 이동 입력 적용
-            Vector2 perpendicularDirection = -Vector2.Perpendicular(pendulumDirection);
-            rb.AddForce(perpendicularDirection * moveInput * speed);
+            case PlayerState.Grappling:
+                col.enabled = false;
+                if (!audioSource.isPlaying)
+                {
+                    audioSource.clip = swingSound;
+                    audioSource.Play();
+                }
+                // 그래플링 중 깜빡임 효과 시작
+                blinkCoroutine = StartCoroutine(BlinkEffect(grappling.grappleDuration, blinkInterval));
+                break;
+        }
+    }
 
-            // 웹 스윙 사운드 재생
-            if (!audioSource.isPlaying)
-            {
-                audioSource.clip = swingSound;
-                audioSource.Play();
-            }
+    private void HandleNormalMovement()
+    {
+        rb.velocity = new Vector2(moveInput * speed, rb.velocity.y);
+    }
 
-            // 그래플링 중 플레이어 캐릭터 반투명 효과
-            BlinkPlayer();
+    private void HandleGrapplingMovement()
+    {
+        Vector2 hookPosition = grappling.GetHookPosition();
+        Vector2 pendulumDirection = (hookPosition - (Vector2)transform.position).normalized;
+
+        float pendulumSpeed = Vector2.Dot(rb.velocity, pendulumDirection);
+
+        // 진자 운동 효과 적용
+        rb.AddForce(-pendulumDirection * pendulumSpeed * pendulumForce);
+
+        // 좌우 이동 입력 적용
+        Vector2 perpendicularDirection = -Vector2.Perpendicular(pendulumDirection);
+        rb.AddForce(perpendicularDirection * moveInput * speed);
+    }
+
+    private void UpdateSprite()
+    {
+        if (rb.velocity.y > 0.1f)
+        {
+            sprite.sprite = jumpingSprite;
+        }
+        else if (rb.velocity.y < -0.1f)
+        {
+            sprite.sprite = fallingSprite;
         }
         else
         {
-            // 그래플링 상태가 아닐 때 충돌 활성화
-            col.enabled = true;
-
-            // 관성 적용
-            if (grappling.isReleased)
-            {
-                rb.velocity = grappling.releaseVelocity;
-                grappling.isReleased = false;
-            }
-            rb.velocity = new Vector2(moveInput * speed, rb.velocity.y);
-
-            // 웹 스윙 사운드 중지
-            if (audioSource.isPlaying)
-            {
-                audioSource.Stop();
-            }
-
-            // 그래플링이 끝났을 때 캐릭터가 다시 불투명하게 설정
-            sprite.color = new Color(1f, 1f, 1f, 1f);
-        }
-
-        if (rb.velocity.y > 0)
-        {
-            sprite.sprite = jumping;
-        }
-        else if (rb.velocity.y < 0)
-        {
-            sprite.sprite = landing;
-        }
-        else if (rb.velocity.y == 0)
-        {
-            sprite.sprite = idle;
-        }
-    }
-
-    private void BlinkPlayer()
-    {
-        blinkTimer += Time.deltaTime;
-        if (blinkTimer >= blinkInterval)
-        {
-            blinkTimer = 0f;
-            sprite.color = new Color(1f, 1f, 1f, sprite.color.a == 1f ? blinkAlpha : 1f);
-        }
-    }
-
-    public bool IsGrappling
-    {
-        get
-        {
-            return grappling.isAttach;
+            sprite.sprite = idleSprite;
         }
     }
 
@@ -144,6 +183,9 @@ public class PlayerController : MonoBehaviour
                 if (gameOver != null)
                 {
                     gameOver.OnPlayerCollideWithEnemy();
+                }
+                if (restartScript != null)
+                {
                     restartScript.OnPlayerCollideWithEnemy();
                 }
             }
@@ -154,10 +196,9 @@ public class PlayerController : MonoBehaviour
     {
         if (!isItemEffectActive)
         {
-            col.enabled = false;
             // 아이템 효과 활성화
             isItemEffectActive = true;
-            Invoke("DeactivateItemEffect", itemEffectDuration);
+            Invoke(nameof(DeactivateItemEffect), itemEffectDuration);
 
             // 위쪽 방향으로 힘 적용
             Rigidbody2D rb = GetComponent<Rigidbody2D>();
@@ -177,19 +218,31 @@ public class PlayerController : MonoBehaviour
     private IEnumerator InvincibilityEffect()
     {
         isInvincible = true;
-        // 무적 상태일 때의 깜빡임
-        for (float t = 0; t < invincibilityDuration; t += 0.1f)
-        {
-            sprite.enabled = !sprite.enabled;
-            yield return new WaitForSeconds(0.1f);
-        }
+        // 무적 상태일 때의 깜빡임 효과 시작
+        if (blinkCoroutine != null) StopCoroutine(blinkCoroutine);
+        blinkCoroutine = StartCoroutine(BlinkEffect(invincibilityDuration, blinkInterval));
 
-        sprite.enabled = true;
+        yield return new WaitForSeconds(invincibilityDuration);
+
         isInvincible = false;
+        // 깜빡임 코루틴이 아직 실행 중이면 중지하고 스프라이트를 다시 활성화합니다.
+        if (blinkCoroutine != null)
+        {
+            StopCoroutine(blinkCoroutine);
+            blinkCoroutine = null;
+        }
+        sprite.enabled = true;
     }
 
-    public bool IsInvincible
+    private IEnumerator BlinkEffect(float duration, float interval)
     {
-        get { return isInvincible; }
+        float timer = 0f;
+        while (timer < duration)
+        {
+            sprite.enabled = !sprite.enabled;
+            yield return new WaitForSeconds(interval);
+            timer += interval;
+        }
+        sprite.enabled = true; // 효과가 끝나면 항상 보이도록 설정
     }
 }
