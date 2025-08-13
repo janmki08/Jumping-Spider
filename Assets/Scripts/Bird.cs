@@ -11,7 +11,7 @@ public class Bird : MonoBehaviour
     public float maxVolume = .5f; // 최대 볼륨
     private Transform playerTransform; // 플레이어의 Transform 컴포넌트
     private static Bird closestBird; // 가장 가까운 적의 Bird 컴포넌트
-    public GameObject itemPrefab; // 생성할 아이템 프리팹
+    private const string ITEM_POOL_TAG = "Item"; // ObjectPooler에서 사용할 태그
 
     private void Start()
     {
@@ -62,9 +62,9 @@ public class Bird : MonoBehaviour
         Destroy(gameObject);
 
         // 아이템 생성
-        if (itemPrefab != null)
+        if (ObjectPooler.Instance != null)
         {
-            Instantiate(itemPrefab, transform.position, Quaternion.identity);
+            ObjectPooler.Instance.SpawnFromPool(ITEM_POOL_TAG, transform.position, Quaternion.identity);
         }
     }
 }

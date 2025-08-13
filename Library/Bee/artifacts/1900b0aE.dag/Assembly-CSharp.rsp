@@ -390,6 +390,7 @@
 "Assets/Scripts/Gun.cs"
 "Assets/Scripts/Hookg.cs"
 "Assets/Scripts/Item.cs"
+"Assets/Scripts/ObjectPooler.cs"
 "Assets/Scripts/Pause.cs"
 "Assets/Scripts/PauseMenu.cs"
 "Assets/Scripts/Platform.cs"
